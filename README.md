@@ -23,6 +23,40 @@ Telegram-бот на базе LLM, настроенный на роль онла
 | Облако | Railway |
 | Конфиг | переменные окружения, `.env` |
 
+## Архитектура
+
+Один процесс, объекты собираются вручную в `__main__.py`. Поток сообщения:
+
+```mermaid
+flowchart TD
+    User([Пользователь])
+    TG[Telegram]
+    Bot[TelegramBot]
+    Asst[Assistant]
+    Hist[ChatHistory]
+    LLM_C[LlmClient]
+    LLM_API[("LLM API\nOpenRouter / Ollama")]
+    Cfg[Config]
+
+    User -- текст --> TG
+    TG -- "текст + chat_id" --> Bot
+    Bot -- respond --> Asst
+    Asst -- "запись user" --> Hist
+    Hist -- история --> Asst
+    Asst -- "system_prompt + история" --> LLM_C
+    LLM_C -- chat completions --> LLM_API
+    LLM_API -- ответ --> LLM_C
+    LLM_C -- текст --> Asst
+    Asst -- "запись assistant" --> Hist
+    Asst -- ответ --> Bot
+    Bot -- send_message --> TG
+    TG -- ответ --> User
+
+    Cfg -. токен, модель, промпт .-> Bot
+    Cfg -. base_url, ключ, модель .-> LLM_C
+    Cfg -. лимит истории .-> Hist
+```
+
 ## Быстрый старт (локально)
 
 ### Требования
