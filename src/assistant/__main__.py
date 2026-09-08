@@ -2,6 +2,7 @@ import asyncio
 import logging
 from assistant.config import Config
 from assistant.llm_client import LlmClient
+from assistant.chat_history import ChatHistory
 from assistant.assistant import Assistant
 from assistant.telegram_bot import TelegramBot
 
@@ -17,7 +18,8 @@ async def main():
     logging.getLogger().setLevel(config.log_level)
     log.info("Starting: provider=%s model=%s", config.llm_provider, config.llm_model)
     llm_client = LlmClient(config)
-    assistant = Assistant(config, llm_client)
+    history = ChatHistory(config)
+    assistant = Assistant(config, llm_client, history)
     bot = TelegramBot(config, assistant)
     await bot.run()
 

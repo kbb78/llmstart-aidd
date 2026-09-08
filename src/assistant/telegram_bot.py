@@ -21,7 +21,7 @@ class TelegramBot:
 
     async def _on_text(self, message: Message) -> None:
         log.info("Message chat_id=%s text=%s", message.chat.id, message.text)
-        answer = await self._assistant.respond(message.text)
+        answer = await self._assistant.respond(message.chat.id, message.text)
         log.info("Response chat_id=%s text=%s", message.chat.id, answer)
         await message.answer(answer)
 
