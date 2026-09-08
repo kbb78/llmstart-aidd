@@ -19,3 +19,6 @@ class ChatHistory:
         history = self._store.get(chat_id)
         if history:
             history.pop()
+
+    def clear(self, chat_id: int) -> None:
+        self._store.pop(chat_id, None)

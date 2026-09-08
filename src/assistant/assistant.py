@@ -25,3 +25,6 @@ class Assistant:
             log.error("LLM error", exc_info=True)
             self._history.remove_last(chat_id)
             return _ERROR_MESSAGE
+
+    def clear(self, chat_id: int) -> None:
+        self._history.clear(chat_id)

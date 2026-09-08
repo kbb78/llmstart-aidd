@@ -12,7 +12,7 @@
 | 6 | Адаптация роли: Онлайн-преподаватель | ✅ Готова |
 | 7 | Деплой в Railway | ✅ Готова |
 | 8 | Документация: README | ✅ Готова |
-| 9 | Очистка истории: /clear_chat | 🔲 Не начата |
+| 9 | Очистка истории: /clear_chat | ✅ Готова |
 
 ---
 
@@ -81,6 +81,6 @@
 ### 9. Очистка истории: команда /clear_chat
 > Пользователь может сбросить историю диалога командой /clear_chat.
 
-- [ ] Добавить метод `clear(chat_id)` в `ChatHistory`
-- [ ] Добавить хендлер `/clear_chat` в `TelegramBot`
-- [ ] Обновить `docs/idea.md` и `docs/vision.md`
+- [x] Добавить метод `clear(chat_id)` в `ChatHistory`
+- [x] Добавить хендлер `/clear_chat` в `TelegramBot`
+- [x] Обновить `docs/idea.md` и `docs/vision.md`

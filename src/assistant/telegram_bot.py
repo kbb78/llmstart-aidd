@@ -14,6 +14,7 @@ class TelegramBot:
         self._dp = Dispatcher()
         self._assistant = assistant
         self._dp.message.register(self._on_start, Command("start"))
+        self._dp.message.register(self._on_clear_chat, Command("clear_chat"))
         self._dp.message.register(self._on_text, F.text)
 
     async def _on_start(self, message: Message) -> None:
@@ -21,6 +22,10 @@ class TelegramBot:
             "Привет! Я твой онлайн-преподаватель. "
             "Напиши тему, которую хочешь изучить, и я объясню её с примерами."
         )
+
+    async def _on_clear_chat(self, message: Message) -> None:
+        self._assistant.clear(message.chat.id)
+        await message.answer("История диалога очищена. Можете начать новую тему.")
 
     async def _on_text(self, message: Message) -> None:
         log.info("Message chat_id=%s text=%s", message.chat.id, message.text)
