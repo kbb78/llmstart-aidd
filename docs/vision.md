@@ -40,7 +40,10 @@
 
 ```
 Makefile
+Dockerfile
+docker-compose.yml
 pyproject.toml
+uv.lock
 .env.example
 docs/
 src/assistant/
@@ -63,7 +66,7 @@ src/assistant/
 
 Исключения из «один класс — один файл»: `__init__.py`, `__main__.py`. Точка входа собирает объекты и запускает бота. Хендлеры живут в `TelegramBot`, отдельный класс хендлеров не заводим.
 
-`.env` в репозиторий не коммитим. В git — `.env.example`.
+`.env` в репозиторий не коммитим. В git — `.env.example`. Compose передаёт `.env` в контейнер.
 
 ## Архитектура
 
@@ -114,6 +117,8 @@ Telegram
 | `ollama` | `http://localhost:11434/v1` |
 
 Если задан `LLM_BASE_URL` — используется он, таблица не применяется. Ещё из `.env`: `LLM_API_KEY`, `LLM_MODEL`. Для Ollama пустой ключ заменяется на заглушку `ollama`. Неизвестное `LLM_PROVIDER` — ошибка при старте, бот не запускается.
+
+В контейнере `localhost` — сам контейнер, не машина. Для Ollama на хосте задайте `LLM_BASE_URL` (например `http://host.docker.internal:11434/v1`).
 
 `Assistant` собирает запрос: первым идёт `system` из `SYSTEM_PROMPT`, затем история чата. Параметры сэмплинга не выносим в конфиг.
 
@@ -168,34 +173,22 @@ Telegram
 
 ## Сборка и деплой
 
-Первая версия запускается на своей машине. Docker, CI, облако, systemd в проект не входят.
+Первая версия запускается на своей машине в Docker. CI, облако и systemd в проект не входят.
 
-В корне: `pyproject.toml` (пакет, зависимости, Python ≥ 3.12), `uv.lock` в git, `Makefile` как обёртка.
+В корне: `Dockerfile`, `docker-compose.yml`, `pyproject.toml` (пакет, зависимости, Python ≥ 3.12), `uv.lock` в git, `Makefile` как тонкая обёртка над `docker compose`. В образе зависимости ставит `uv`. Compose читает `.env` и передаёт его в контейнер.
 
 | Цель | Действие |
 |---|---|
-| `make install` | `uv sync` |
-| `make run` | `uv run python -m assistant` |
+| `make build` | `docker compose build` |
+| `make run` | `docker compose up` (передний план) |
+| `make up` | `docker compose up -d` (фон) |
+| `make down` | `docker compose down` |
+| `make logs` | `docker compose logs -f` |
 
-Деплой: clone, `make install`, заполнить `.env`, запуск. Публичный URL не нужен: long polling сам ходит к Telegram.
+Деплой: clone, заполнить `.env`, `make build`, `make run` или `make up`. Публичный URL не нужен: long polling сам ходит к Telegram.
 
 **Передний план:** `make run`, остановка Ctrl+C.
 
-**Фон.** Отдельных скриптов и целей Make нет — `nohup` или `screen` уже есть в ОС (Linux / macOS / WSL). Логи бота идут в stdout, их нужно перенаправить в файл (`.gitignore` уже игнорирует `*.log`).
+**Фон:** `make up`. Логи — stdout контейнера, смотреть через `make logs`. Остановка: `make down`. `nohup` и `screen` не используем.
 
-`nohup` — процесс переживает закрытие терминала:
-
-```bash
-nohup make run > bot.log 2>&1 &
-```
-
-Остановка: найти pid (`pgrep -f "python -m assistant"`) и `kill <pid>`.
-
-`screen` — удобно смотреть лог живьём:
-
-```bash
-screen -S assistant
-make run
-```
-
-Отключиться: Ctrl+A, D. Вернуться: `screen -r assistant`. Остановить бота: вернуться в сессию и Ctrl+C.
+Рестарт контейнера очищает историю диалогов: она живёт только в памяти процесса.

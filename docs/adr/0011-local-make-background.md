@@ -1,6 +1,6 @@
 # ADR 0011. Локальный запуск через Make, фон через ОС
 
-**Статус:** принято
+**Статус:** заменено ([ADR 0012](0012-local-docker-compose.md))
 
 ## Контекст
 
@@ -8,8 +8,10 @@
 
 ## Решение
 
-Сборка и запуск — `make install` и `make run` над `uv`. Docker и CI нет. Фон — `nohup` или `screen`, без своих демонов и целей Make. Команды описаны в `docs/vision.md`.
+Сборка и запуск — `make install` и `make run` над `uv`. Docker и CI нет. Фон — `nohup` или `screen`, без своих демонов и целей Make.
 
 ## Следствия
 
-На Windows без WSL `nohup`/`screen` нет: там достаточно `make run` в отдельном окне. Pid и лог-файл пользователь ведёт сам.
+На Windows без WSL `nohup`/`screen` нет. Pid и лог-файл пользователь ведёт сам.
+
+Заменено: локальный запуск и фон — Docker Compose.
