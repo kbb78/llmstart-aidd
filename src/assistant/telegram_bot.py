@@ -17,7 +17,10 @@ class TelegramBot:
         self._dp.message.register(self._on_text, F.text)
 
     async def _on_start(self, message: Message) -> None:
-        await message.answer("Привет! Напиши мне что-нибудь.")
+        await message.answer(
+            "Привет! Я твой онлайн-преподаватель. "
+            "Напиши тему, которую хочешь изучить, и я объясню её с примерами."
+        )
 
     async def _on_text(self, message: Message) -> None:
         log.info("Message chat_id=%s text=%s", message.chat.id, message.text)
