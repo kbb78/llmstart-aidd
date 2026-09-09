@@ -13,6 +13,7 @@ class Config:
         self.system_prompt = self._require("SYSTEM_PROMPT")
         self.llm_api_key = os.getenv("LLM_API_KEY", "")
         self.llm_base_url = os.getenv("LLM_BASE_URL")
+        self.llm_max_tokens = int(os.getenv("LLM_MAX_TOKENS", "500"))
         self.max_history_messages = int(os.getenv("MAX_HISTORY_MESSAGES", "20"))
         self.log_level = os.getenv("LOG_LEVEL", "INFO")
 

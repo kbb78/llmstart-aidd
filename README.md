@@ -9,6 +9,7 @@ Telegram-бот на базе LLM, настроенный на роль онла
 - **Проверка знаний** — после объяснения бот задаёт 1–2 вопроса для закрепления
 - **Контекст диалога** — бот помнит историю разговора в рамках сессии
 - **Настраиваемая роль** — роль задаётся через `SYSTEM_PROMPT` в `.env` без изменения кода
+- **Лимит ответа** — длина ответа модели ограничена `LLM_MAX_TOKENS` (по умолчанию 500 токенов)
 
 ## Технологический стек
 
@@ -53,7 +54,7 @@ flowchart TD
     TG -- ответ --> User
 
     Cfg -. токен, модель, промпт .-> Bot
-    Cfg -. base_url, ключ, модель .-> LLM_C
+    Cfg -. base_url, ключ, модель, max_tokens .-> LLM_C
     Cfg -. лимит истории .-> Hist
 ```
 
@@ -80,6 +81,7 @@ TELEGRAM_BOT_TOKEN=your_token
 LLM_PROVIDER=openrouter
 LLM_MODEL=openai/gpt-4o-mini
 LLM_API_KEY=your_openrouter_key
+LLM_MAX_TOKENS=500
 SYSTEM_PROMPT=Ты — онлайн-преподаватель...
 ```
 
