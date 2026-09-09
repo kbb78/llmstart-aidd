@@ -1,4 +1,5 @@
 import logging
+from io import BytesIO
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -15,13 +16,15 @@ class TelegramBot:
         self._assistant = assistant
         self._dp.message.register(self._on_start, Command("start"))
         self._dp.message.register(self._on_clear_chat, Command("clear_chat"))
+        self._dp.message.register(self._on_photo, F.photo)
         self._dp.message.register(self._on_text, F.text)
 
     async def _on_start(self, message: Message) -> None:
         await message.answer(
             "Привет! Я ИИ-преподаватель. "
             "Напиши предмет, который хочешь изучить, и цель — к какому результату идёшь. "
-            "Я спрошу уровень, составлю программу и проведу занятие."
+            "Я спрошу уровень, составлю программу и проведу занятие. "
+            "Можно прислать фото по теме: конспект, задачу, схему."
         )
 
     async def _on_clear_chat(self, message: Message) -> None:
@@ -31,6 +34,16 @@ class TelegramBot:
     async def _on_text(self, message: Message) -> None:
         log.info("Message chat_id=%s text=%s", message.chat.id, message.text)
         answer = await self._assistant.respond(message.chat.id, message.text)
+        log.info("Response chat_id=%s text=%s", message.chat.id, answer)
+        await message.answer(answer)
+
+    async def _on_photo(self, message: Message) -> None:
+        log.info("Message chat_id=%s type=photo", message.chat.id)
+        buffer = BytesIO()
+        await self._bot.download(message.photo[-1], destination=buffer)
+        answer = await self._assistant.respond_photo(
+            message.chat.id, buffer.getvalue(), message.caption
+        )
         log.info("Response chat_id=%s text=%s", message.chat.id, answer)
         await message.answer(answer)
 

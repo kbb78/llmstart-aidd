@@ -2,6 +2,7 @@ import logging
 from assistant.config import Config
 from assistant.llm_client import LlmClient
 from assistant.chat_history import ChatHistory
+from assistant.vision_client import VisionClient
 
 log = logging.getLogger(__name__)
 
@@ -9,10 +10,17 @@ _ERROR_MESSAGE = "Не удалось получить ответ, попроб�
 
 
 class Assistant:
-    def __init__(self, config: Config, llm_client: LlmClient, history: ChatHistory):
+    def __init__(
+        self,
+        config: Config,
+        llm_client: LlmClient,
+        history: ChatHistory,
+        vision_client: VisionClient,
+    ):
         self._system_prompt = config.system_prompt
         self._llm = llm_client
         self._history = history
+        self._vision = vision_client
 
     async def respond(self, chat_id: int, text: str) -> str:
         self._history.add(chat_id, "user", text)
@@ -25,6 +33,25 @@ class Assistant:
             log.error("LLM error", exc_info=True)
             self._history.remove_last(chat_id)
             return _ERROR_MESSAGE
+
+    async def respond_photo(self, chat_id: int, image: bytes, caption: str | None) -> str:
+        try:
+            description = await self._vision.describe(image, caption)
+        except Exception:
+            log.error("Vision error", exc_info=True)
+            return _ERROR_MESSAGE
+        log.info("Vision chat_id=%s text=%s", chat_id, description)
+        if caption:
+            user_text = (
+                f"Пользователь прислал фото с подписью: {caption}\n\n"
+                f"Описание снимка: {description}"
+            )
+        else:
+            user_text = (
+                f"Пользователь прислал фото.\n\n"
+                f"Описание снимка: {description}"
+            )
+        return await self.respond(chat_id, user_text)
 
     def clear(self, chat_id: int) -> None:
         self._history.clear(chat_id)

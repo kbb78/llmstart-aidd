@@ -1,22 +1,35 @@
-import logging
+import base64
 from openai import AsyncOpenAI
 from assistant.config import Config
 
-log = logging.getLogger(__name__)
+_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 
-class LlmClient:
+class VisionClient:
     def __init__(self, config: Config):
-        api_key = config.llm_api_key or "ollama"
-        self._client = AsyncOpenAI(api_key=api_key, base_url=config.base_url)
-        self._model = config.llm_model
-        self._max_tokens = config.llm_max_tokens
+        self._client = AsyncOpenAI(
+            api_key=config.llm_api_key or "ollama",
+            base_url=_OPENROUTER_BASE_URL,
+        )
+        self._model = config.vision_model
+        self._prompt = config.vision_prompt
 
-    async def complete(self, messages: list[dict]) -> str:
+    async def describe(self, image: bytes, caption: str | None = None) -> str:
+        text = self._prompt
+        if caption:
+            text = f"{self._prompt}\n\nПодпись пользователя: {caption}"
+        data_url = f"data:image/jpeg;base64,{base64.b64encode(image).decode('ascii')}"
         response = await self._client.chat.completions.create(
             model=self._model,
-            messages=messages,
-            max_tokens=self._max_tokens,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": text},
+                        {"type": "image_url", "image_url": {"url": data_url}},
+                    ],
+                }
+            ],
         )
         return _completion_text(response)
 

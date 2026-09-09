@@ -11,6 +11,8 @@ class Config:
             raise ValueError(f"Unknown LLM_PROVIDER: {self.llm_provider}")
         self.llm_model = self._require("LLM_MODEL")
         self.system_prompt = self._require("SYSTEM_PROMPT")
+        self.vision_model = self._require("VISION_MODEL")
+        self.vision_prompt = self._require("VISION_PROMPT")
         self.llm_api_key = os.getenv("LLM_API_KEY", "")
         self.llm_base_url = os.getenv("LLM_BASE_URL")
         self.llm_max_tokens = int(os.getenv("LLM_MAX_TOKENS", "2000"))
