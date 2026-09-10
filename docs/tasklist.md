@@ -99,7 +99,7 @@
 > Пользователь присылает фото по теме — бот разбирает снимок и продолжает занятие.
 
 - [x] `Config` и `.env.example` — `VISION_MODEL`, `VISION_PROMPT`; в лог старта — модель фото
-- [x] `VisionClient` — байты изображения (+ подпись) → текст; OpenRouter, изображение в base64
+- [x] `VisionClient` — байты изображения (+ подпись) → текст; `Config.base_url`, изображение в base64
 - [x] `Assistant` — фото → текст в историю → ответ преподавателя; ошибка vision как у LLM; байты в историю не пишем
 - [x] Хендлер фото в `TelegramBot` — скачать файл, передать байты в `Assistant`; стикеры по-прежнему без ответа
 - [x] `__main__.py` — собрать `VisionClient` и передать в `Assistant`
@@ -110,7 +110,7 @@
 > Пользователь отправляет голос или аудио — бот транскрибирует реплику и продолжает занятие.
 
 - [x] `Config` и `.env.example` — `AUDIO_MODEL`, `AUDIO_PROMPT`; в лог старта — модель аудио
-- [x] `AudioClient` — байты + формат → транскрипт; OpenRouter STT `/audio/transcriptions`, `input_audio` (base64); для голосовых Telegram формат `ogg`
+- [x] `AudioClient` — байты + формат → транскрипт; STT `{base_url}/audio/transcriptions`, `input_audio` (base64); для голосовых Telegram формат `ogg`
 - [x] `Assistant` — аудио → транскрипт в историю → ответ преподавателя; ошибка как у LLM; байты в историю не пишем
 - [x] Хендлер голоса и аудио в `TelegramBot` — скачать файл, передать байты и формат в `Assistant`
 - [x] `__main__.py` — собрать `AudioClient` и передать в `Assistant`

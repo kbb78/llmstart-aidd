@@ -2,14 +2,12 @@ import base64
 from openai import AsyncOpenAI
 from assistant.config import Config
 
-_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-
 
 class VisionClient:
     def __init__(self, config: Config):
         self._client = AsyncOpenAI(
             api_key=config.llm_api_key or "ollama",
-            base_url=_OPENROUTER_BASE_URL,
+            base_url=config.base_url,
         )
         self._model = config.vision_model
         self._prompt = config.vision_prompt

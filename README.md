@@ -24,8 +24,8 @@ Telegram-бот — ИИ-наставник по выбранному предм
 | Telegram | aiogram 3, long polling |
 | LLM | клиент `openai` (OpenAI-совместимый API) |
 | Провайдеры LLM | OpenRouter, Ollama |
-| Фото | OpenRouter, vision-модель |
-| Аудио | OpenRouter STT, `input_audio` (ogg) |
+| Фото | тот же `base_url`, vision-модель |
+| Аудио | тот же `base_url`, STT `input_audio` (ogg) |
 | Контейнеризация | Docker, Docker Compose |
 | Облако | Railway |
 | Конфиг | переменные окружения, `.env` |

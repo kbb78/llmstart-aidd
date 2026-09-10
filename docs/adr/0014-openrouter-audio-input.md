@@ -11,7 +11,7 @@ OpenRouter даёт два пути «аудио → текст»:
 1. **Мультимодальный chat completions** — `input_audio` или `audio_url` в `/chat/completions`. Зависит от провайдера: Nvidia Nemotron Omni не принимает `input_audio`, а для `audio_url` официально ждёт WAV/MP3/FLAC — OGG из Telegram без конвертации не распознаётся.
 2. **STT** — `POST /api/v1/audio/transcriptions` (Whisper и аналоги). Тело: JSON с `input_audio` (`data` — raw base64, `format` — в т.ч. `ogg`). Клиент `openai` шлёт multipart как у OpenAI — для OpenRouter не подходит, нужен прямой HTTP JSON.
 
-Текстовый преподаватель может работать через Ollama. Аудио по умолчанию всё равно идёт в OpenRouter. История — текстовые словари `{role, content}` без байтов ([ADR 0008](0008-in-memory-message-dicts.md)).
+Текстовый преподаватель может работать через Ollama. URL аудио — тот же `Config.base_url`, что у текста ([ADR 0003](0003-openai-client-two-providers.md)). История — текстовые словари `{role, content}` без байтов ([ADR 0008](0008-in-memory-message-dicts.md)).
 
 ## Подходы
 
@@ -34,9 +34,9 @@ OpenRouter даёт два пути «аудио → текст»:
 
 ## Решение
 
-`TelegramBot` скачивает файл голосового или аудиосообщения и передаёт байты и формат в `Assistant`. К OpenRouter хендлер не ходит.
+`TelegramBot` скачивает файл голосового или аудиосообщения и передаёт байты и формат в `Assistant`. К API провайдера хендлер не ходит.
 
-`AudioClient` вызывает `POST https://openrouter.ai/api/v1/audio/transcriptions` через `httpx` (JSON, не multipart). Ключ — `LLM_API_KEY`, модель — `AUDIO_MODEL`. В теле: `input_audio.data` (raw base64) и `input_audio.format` как пришло из Telegram (`ogg` для голосовых). Конвертации в WAV нет, `ffmpeg` в образе нет. На выходе — строка-транскрипт.
+`AudioClient` вызывает `POST {base_url}/audio/transcriptions` через `httpx` (JSON, не multipart). `base_url` — из `Config` (`LLM_BASE_URL` или таблица по `LLM_PROVIDER`). Ключ — `LLM_API_KEY`, модель — `AUDIO_MODEL`. В теле: `input_audio.data` (raw base64) и `input_audio.format` как пришло из Telegram (`ogg` для голосовых). Конвертации в WAV нет, `ffmpeg` в образе нет. На выходе — строка-транскрипт.
 
 `AUDIO_PROMPT` остаётся в конфиге для единообразия с vision, в STT-запрос не передаётся (Whisper его не использует).
 
@@ -44,4 +44,4 @@ OpenRouter даёт два пути «аудио → текст»:
 
 ## Следствия
 
-Смена STT-модели — правка `AUDIO_MODEL` в `.env`. Если текстовый провайдер — Ollama, ключ OpenRouter всё равно нужен для аудио. Локальный Whisper и ffmpeg не нужны. Реализация — итерация 12 в `docs/tasklist.md`.
+Смена STT-модели — правка `AUDIO_MODEL` в `.env`. URL не зашит в код: аудио идёт туда же, куда текст. Локальный Whisper и ffmpeg не нужны. Реализация — итерация 12 в `docs/tasklist.md`.
