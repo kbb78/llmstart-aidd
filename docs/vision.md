@@ -2,7 +2,7 @@
 
 Документ — исходная точка разработки. Цель: ИИ-преподаватель в Telegram (текст, фото, голос) с ролью, заданной системным промптом, запущенный в облаке Railway.
 
-Вне проекта: база данных, webhook, очереди, RAG, фреймворки агентов, Whisper, стриминг.
+Вне проекта: база данных, webhook, очереди, RAG, фреймворки агентов, стриминг.
 
 Связанные решения: [ADR](adr/).
 
@@ -18,7 +18,7 @@
 | LLM (текст) | официальный клиент `openai` |
 | Провайдеры LLM | OpenRouter и локальная Ollama (оба — OpenAI-совместимый API) |
 | Фото | OpenRouter, vision-модель, изображение → текст |
-| Аудио | OpenRouter, `input_audio` (base64), без Whisper |
+| Аудио | OpenRouter STT (`/audio/transcriptions`), `input_audio`, формат как в Telegram (`ogg`) |
 | Конфиг | переменные окружения, файл `.env` |
 | Логи | стандартный модуль `logging` |
 | История диалога | память процесса, без БД |
@@ -67,7 +67,7 @@ src/assistant/
 | `config.py` | `Config` | читает окружение |
 | `llm_client.py` | `LlmClient` | вызов chat completions (текст) |
 | `vision_client.py` | `VisionClient` | изображение → текст; по умолчанию OpenRouter |
-| `audio_client.py` | `AudioClient` | аудио → транскрипт; по умолчанию OpenRouter, `input_audio` |
+| `audio_client.py` | `AudioClient` | аудио → транскрипт; по умолчанию OpenRouter STT, `input_audio` |
 | `chat_history.py` | `ChatHistory` | история в памяти по `chat_id`; метод `clear(chat_id)` сбрасывает диалог |
 | `assistant.py` | `Assistant` | оркестрация: фото/аудио → текст, затем системный промпт + история + LLM → ответ |
 | `telegram_bot.py` | `TelegramBot` | polling и хендлеры, вызывает `Assistant` |
@@ -145,7 +145,7 @@ Retry-библиотек и обёрток нет.
 
 **Фото.** `VisionClient` по умолчанию вызывает OpenRouter chat completions с vision-моделью: текст промпта (`VISION_PROMPT`) и изображение (base64). На выходе — текст: что на фото и что с ним делать в занятии. Подпись к фото, если есть, передаётся вместе с изображением: пользователь может попросить объяснить снимок.
 
-**Аудио.** `AudioClient` по умолчанию вызывает OpenRouter chat completions с `input_audio`: base64 и формат файла (для голосовых Telegram — `ogg`). Отдельного Whisper нет. Промпт транскрипции — `AUDIO_PROMPT`. На выходе — текст реплики пользователя.
+**Аудио.** `AudioClient` по умолчанию вызывает OpenRouter `POST /api/v1/audio/transcriptions`: raw base64 и `format` файла (для голосовых Telegram — `ogg`). Модель — `AUDIO_MODEL` (например Whisper). Без конвертации в WAV и без `ffmpeg`. На выходе — текст реплики пользователя.
 
 URL по умолчанию — `https://openrouter.ai/api/v1`, ключ — `LLM_API_KEY`. Если текстовый провайдер — Ollama, ключ OpenRouter всё равно нужен: им пользуются клиенты фото и аудио.
 
@@ -195,8 +195,8 @@ URL по умолчанию — `https://openrouter.ai/api/v1`, ключ — `LL
 | `SYSTEM_PROMPT` | да | роль преподавателя |
 | `VISION_MODEL` | да | vision-модель OpenRouter |
 | `VISION_PROMPT` | да | промпт разбора фото |
-| `AUDIO_MODEL` | да | модель OpenRouter с `input_audio` |
-| `AUDIO_PROMPT` | да | промпт транскрипции |
+| `AUDIO_MODEL` | да | STT-модель OpenRouter (например Whisper) |
+| `AUDIO_PROMPT` | да | зарезервировано; в STT-запрос не передаётся |
 | `LLM_API_KEY` | для OpenRouter — да; для Ollama как текста — да, если нужны фото и аудио | ключ API (текстовый OpenRouter и клиенты фото/аудио) |
 | `LLM_BASE_URL` | нет | перекрывает URL текстового провайдера |
 | `LLM_MAX_TOKENS` | нет | лимит токенов ответа модели, по умолчанию `2000` |

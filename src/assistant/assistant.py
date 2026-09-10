@@ -3,6 +3,7 @@ from assistant.config import Config
 from assistant.llm_client import LlmClient
 from assistant.chat_history import ChatHistory
 from assistant.vision_client import VisionClient
+from assistant.audio_client import AudioClient
 
 log = logging.getLogger(__name__)
 
@@ -16,11 +17,13 @@ class Assistant:
         llm_client: LlmClient,
         history: ChatHistory,
         vision_client: VisionClient,
+        audio_client: AudioClient,
     ):
         self._system_prompt = config.system_prompt
         self._llm = llm_client
         self._history = history
         self._vision = vision_client
+        self._audio = audio_client
 
     async def respond(self, chat_id: int, text: str) -> str:
         self._history.add(chat_id, "user", text)
@@ -51,6 +54,19 @@ class Assistant:
                 f"Пользователь прислал фото.\n\n"
                 f"Описание снимка: {description}"
             )
+        return await self.respond(chat_id, user_text)
+
+    async def respond_audio(self, chat_id: int, audio: bytes, format: str) -> str:
+        try:
+            transcript = await self._audio.transcribe(audio, format)
+        except Exception:
+            log.error("Audio error", exc_info=True)
+            return _ERROR_MESSAGE
+        log.info("Audio chat_id=%s text=%s", chat_id, transcript)
+        user_text = (
+            f"Пользователь прислал голосовое сообщение.\n\n"
+            f"Транскрипт: {transcript}"
+        )
         return await self.respond(chat_id, user_text)
 
     def clear(self, chat_id: int) -> None:

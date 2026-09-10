@@ -33,14 +33,7 @@ def _completion_text(response) -> str:
 
 
 def _message_text(message) -> str:
-    extra = getattr(message, "model_extra", None) or {}
-    for value in (
-        message.content,
-        getattr(message, "reasoning", None),
-        getattr(message, "reasoning_content", None),
-        extra.get("reasoning"),
-        extra.get("reasoning_content"),
-    ):
-        if isinstance(value, str) and value.strip():
-            return value
+    content = message.content
+    if isinstance(content, str) and content.strip():
+        return content
     raise ValueError("Empty model response")
